@@ -1,24 +1,23 @@
 package main
 
 import (
-	"final_project/pkg/config"
 	"final_project/pkg/db"
 	"final_project/pkg/server"
 	"log"
-
-	"github.com/joho/godotenv"
 )
 
 func main() {
-	godotenv.Load()
-	cfg := config.Load()
+	// godotenv.Load()
+	// cfg := config.Load()
+	port := "7540"
+	dbFile := "scheduler.db"
 
-	err := db.Init(cfg.TODO_DBFILE)
+	err := db.Init(dbFile)
 	if err != nil {
 		log.Print(err)
 	}
 	defer db.DB.Close()
 
-	log.Printf("Сервер запущен на порту: %s", cfg.TODO_PORT)
-	server.Serv(":" + cfg.TODO_PORT)
+	log.Printf("Сервер запущен на порту: %s", port)
+	server.Serv(":" + port)
 }

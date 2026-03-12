@@ -35,15 +35,17 @@ func Tasks(search string, limit int) ([]*Task, error) {
 	var query string
 
 	// формируем SELECT запросы получение задач с фильтром по дате, заголовку или без фильтра
-	if date, err := time.Parse("02.01.2006", search); err == nil {
+	date, err := time.Parse("02.01.2006", search)
+	switch {
+	case err == nil:
 		dateStr := date.Format("20060102")
 		query = "SELECT * FROM scheduler WHERE date = :date LIMIT :limit"
 		args = append(args, sql.Named("date", dateStr), sql.Named("limit", limit))
-	} else if search != "" {
+	case search != "":
 		search = "%" + search + "%"
 		query = "SELECT * FROM scheduler WHERE title LIKE :title OR comment LIKE :comment ORDER BY date LIMIT :limit"
 		args = append(args, sql.Named("title", search), sql.Named("comment", search), sql.Named("limit", limit))
-	} else {
+	default:
 		query = "SELECT id, date, title, comment, repeat FROM scheduler ORDER BY date LIMIT :limit"
 		args = append(args, sql.Named("limit", limit))
 	}
@@ -73,15 +75,13 @@ func Tasks(search string, limit int) ([]*Task, error) {
 	return tasks, nil
 }
 
-// фукция GetTask() получает задачу по id
+// функция GetTask() получает задачу по id
 func GetTask(id string) (*Task, error) {
 	// делаем SELECT запрос в ДБ и записываем ответ в структуру Task{}
 	row := DB.QueryRow("SELECT * FROM scheduler WHERE id = :id", sql.Named("id", id))
 	task := &Task{}
 	err := row.Scan(&task.ID, &task.Date, &task.Title, &task.Comment, &task.Repeat)
-	if err == sql.ErrNoRows {
-		return nil, fmt.Errorf("Задача не найдена")
-	} else if err != nil {
+	if err != nil {
 		return nil, err
 	}
 
@@ -126,7 +126,7 @@ func DeleteTask(id string) error {
 	return nil
 }
 
-// фукнкция UpdateDate() изменяет дату задачи по id
+// функция UpdateDate() изменяет дату задачи по id
 func UpdateDate(date, id string) error {
 	// делаем UPDATE запрос в ДБ
 	_, err := DB.Exec(

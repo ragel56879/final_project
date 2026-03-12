@@ -2,11 +2,12 @@ package api
 
 import (
 	"encoding/json"
+	"log"
 	"net/http"
 )
 
 // сериализирует ответ в json
-func writeJson(w http.ResponseWriter, data any) {
+func writeJSON(w http.ResponseWriter, status int, data any) {
 	resp, err := json.Marshal(data)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -14,21 +15,13 @@ func writeJson(w http.ResponseWriter, data any) {
 	}
 
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
-	w.WriteHeader(http.StatusOK)
-	w.Write(resp)
+	w.WriteHeader(status)
+	_, err = w.Write(resp)
+	if err != nil {
+		log.Print(err)
+	}
 }
 
-// сериализирует ошибку в json
-func errJson(w http.ResponseWriter, data any) {
-	resp, err := json.Marshal(data)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
-
-	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
-	w.WriteHeader(http.StatusBadRequest)
-	w.Write(resp)
-
-	errResp.Error = ""
+func errWriteJSON(w http.ResponseWriter, errJSON errJSON) {
+	writeJSON(w, errJSON.Code, errJSON)
 }
